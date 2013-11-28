@@ -1,5 +1,7 @@
 package edu.asu.nlp.util;
 
+import java.util.HashSet;
+
 public class Constants {
 	public static final int AMAZON_NUMBER_OF_REVIEWS = 300;
 	public static final String AMAZON_REVIEW_RESULT_PATH = "/Users/kishanmaddula/Documents/AmazonReviews/";
@@ -9,4 +11,7 @@ public class Constants {
 	public static float AMAZON_MIN_REVIEW_SCORE = 2.0f;
 	public static float AMAZON_MAX_REVIEW_SCORE = 3.0f;
 	public static float AMAZON_HELPFULNESS_THRESHOLD = 0.30f;
+	public static String STOPWORDS_FILE = "stopwords";
+	
+	public static HashSet<String> STOPWORDS;
 }
