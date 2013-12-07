@@ -11,11 +11,13 @@ import java.io.IOException;
 import edu.asu.nlp.util.Constants;
 
 public class LabelData {
+	static int positiveCount, negativeCount;
 	public static void readFileData(String filePath){
 		try {
 			BufferedReader buf = new BufferedReader(new FileReader(filePath));
 			for(int i=0;i<Constants.AMAZON_NUMBER_OF_REVIEWS;i++){
-				System.out.println("Writing review number " + i + "(" + (float)i/Constants.AMAZON_NUMBER_OF_REVIEWS*100 + "% done)");
+				if(i%1000==0)
+					System.out.println("Reading Amazon reviews in process (" + (float)i/Constants.AMAZON_NUMBER_OF_REVIEWS*100 + "% done)");
 				readAReview(buf);
 				if(buf.readLine()==null)
 					break;
@@ -43,16 +45,22 @@ public class LabelData {
 		float helpfulness = getHelpfulnessScore(getValue(lines[3]));
 		float score = Float.parseFloat(getValue(lines[4]));
 		String review = getValue(lines[7]);
-		System.out.println("Helpfulness: " + helpfulness + "(" + lines[3] + ")");
-		System.out.println("Score is " + score);
-		if(helpfulness>Constants.AMAZON_HELPFULNESS_THRESHOLD){
-			//Valid review
-			
-			if(score<Constants.AMAZON_MIN_REVIEW_SCORE){
-				writeFile(productId,userId,review,false);
-			}
-			else if(score>Constants.AMAZON_MAX_REVIEW_SCORE){
-				writeFile(productId,userId,review,true);
+		if(productId.startsWith("B")){
+			if(helpfulness>Constants.AMAZON_HELPFULNESS_THRESHOLD){
+				//Valid review
+
+				if(score<Constants.AMAZON_MIN_REVIEW_SCORE){
+					if(positiveCount<=Constants.AMAZON_MAX_REVIEWS){
+						positiveCount++;
+						writeFile(productId,userId,review,false);
+					}
+				}
+				else if(score>Constants.AMAZON_MAX_REVIEW_SCORE){
+					if(negativeCount<=Constants.AMAZON_MAX_REVIEWS){
+						negativeCount++;
+						writeFile(productId,userId,review,true);
+					}
+				}
 			}
 		}
 		
@@ -66,7 +74,7 @@ public class LabelData {
 		else{
 			folderName = folderName + "neg/";
 		}
-		File f = new File(folderName+productId+Constants.SEPARATOR + userId);
+		File f = new File(folderName+productId+Constants.SEPARATOR + userId + Constants.EXTENSION);
 		try {
 			f.createNewFile();
 			BufferedWriter buf = new BufferedWriter(new FileWriter(f.getAbsoluteFile()));
@@ -84,8 +92,11 @@ public class LabelData {
 	
 	private static float getHelpfulnessScore(String value){
 		String[] tokens = value.split("/");
-		int num = Integer.parseInt(tokens[0]);
-		int den = Integer.parseInt(tokens[1]);
+		int num = 0;
+		int den = 0;
+		num = Integer.parseInt(tokens[0]);
+		den = Integer.parseInt(tokens[1]);
+		
 		float returnValue = 0;
 		if(den!=0)
 			returnValue = (float)num/den;
